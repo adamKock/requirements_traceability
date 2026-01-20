@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import textwrap
 
 
-
+##Difference beteen this and multi var score class is that this just looks at tests steps vs requirements 
 
 ##List the requirments 
 #Then do the multi layered dict

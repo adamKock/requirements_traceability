@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 import textwrap
 
 
-
+#This looks at 3 different matrixes 
+# Requirment vs Test Case Steps":
+#"Requirement vs Test Case Summary"
+#"Test Case Summary vs Test Steps"
+    
 
 ##List the requirments 
 #Then do the multi layered dict
