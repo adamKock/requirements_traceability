@@ -1,0 +1,4 @@
+﻿Requirement,Status ,Top match,Confidence Score
+The system shall allow users to reset their passwords via email,Mapped,Trigger password recovery email link,0.88
+User must be able to export reports in PDF format,Reviewed,Check PDF export for monthly reports,0.58
+The application should support biometric authentication,GAP,Ensure fingerprint scanner works for login,0

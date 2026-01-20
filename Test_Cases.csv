@@ -1,0 +1,7 @@
+﻿TC ID,Test Case Description
+1,Verify password reset functionality
+2,Check PDF export for monthly reports
+3,Validate login with username and password
+4,Ensure fingerprint scanner works for login
+5,Trigger password recovery email link
+6,Confirm PDF file naming convention

@@ -1,0 +1,5 @@
+﻿ID,Requirement
+REQ-1,The system shall allow users to reset their passwords via email.
+REQ-2,User must be able to export reports in PDF format.
+REQ-3,The application should support biometric authentication.
+REQ-4,The application can tell me the weather

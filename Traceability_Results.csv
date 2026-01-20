@@ -1,0 +1,5 @@
+Requirement,Status,Top Match,Count of testcases that meet threshold
+The system shall allow users to reset their passwords via email.,Mapped,Trigger password recovery email link,2
+User must be able to export reports in PDF format.,Mapped,Check PDF export for monthly reports,1
+The application should support biometric authentication.,Review,Ensure fingerprint scanner works for login,1
+The application can tell me the weather,GAP,None,0
