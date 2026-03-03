@@ -1,0 +1,39 @@
+How we want the app to function 
+
+what is the arch - 
+1. User Uploads requirements, maps those requirements to the expected schema and click validate 
+ i if validation is success the file is uploaded and makes up half the expected payload 
+
+2 user uploads test cases, maps those test case column headers to the expected schema and clicks validate 
+ i if validation is successful the file is uploaded and makes up the remaining half of the expected payload 
+
+3 if the uploads fail the validation and error is presented saying need to map x column to y 
+
+
+
+Future functionality to improve and get it ready 
+Need to add on test steps to the test cases and run it through the engine 
+Need to modify to how Jira and ADO export to make it ammendable for import 
+
+
+
+Things I need to implement to get this done front end 
+UI to upload and decide what columns to map where
+How to display the results in the front end 
+
+
+
+
+
+front end solution 
+Process/step based ui, 
+1. starting with openning and then asking the user to upload requirements and map them. 
+2. Upload requirements and click validate - Request gets sent to back end to validate the mapping against the schema. If sucess the request gets stored in the front end 
+3. Upload test cases and click validate - Request gets sent to back end to validate the mapping against the schema. 
+3.5 If both uploads pass the second request gets combined with the first to create a payload 
+4. If both uploads have passed and then the user clicks run the combined payload is sent to the back end and executes the engine 
+5. Once ran the data is returned and presented in the front end 
+
+
+
+
