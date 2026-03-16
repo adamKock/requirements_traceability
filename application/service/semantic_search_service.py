@@ -11,13 +11,25 @@ class TraceabilityService:
     def __init__(self):
         self.engine = SemanticEngine()
     
-    def import_csv(self, file_obj, model_class:Type[BaseModel]) -> List[dict]:
+    def import_csv(self, file_obj, model_class:Type[BaseModel]) -> List[BaseModel]:
         #Import CSV
         df = pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
 
         #Clean Columns 
         df.columns = df.columns.str.strip().str.lower()
+
+        if "id" in df.columns and "stepaction" in df.columns:
+            if "stepnumber" in df.columns:
+                df = df.sort_values(["id", "stepnumber"])
+            df = (
+                df.groupby(["id", "summary"])["stepaction"]
+                .apply(list)
+                .reset_index(name="steps"))
+
+
+
+
         csv_columns = set(df.columns)
         expected_columns = set(model_class.model_fields.keys())
 
@@ -29,7 +41,7 @@ class TraceabilityService:
             print("CSV columns do not match schema")
             raise ValueError(f"CSV columns do not match schema. Missing: {missing}")
         if too_many:
-            df.drop(columns=list(too_many), inplace=True)
+            df.drop(columns=list(too_many), inplace=True) 
         records = df.to_dict(orient="records")
         
         return [model_class(**row) for row in records] 

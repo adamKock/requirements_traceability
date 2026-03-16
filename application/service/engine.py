@@ -17,10 +17,21 @@ class SemanticEngine:
 
     def convert_to_tensor(self, payload:TraceabilityRequest):
         requirement_text = [r.description for r in payload.requirements]
-        test_case_text = [t.summary for t in payload.test_cases]
-        encoded_req = self.model.encode(requirement_text)
-        encoded_test_text = self.model.encode(test_case_text)
-        similarity = util.cos_sim(encoded_req, encoded_test_text)  
+        test_case_sentences = [[t.summary] + t.steps for t in payload.test_cases]
+        
+        n_testcases = len(test_case_sentences)
+        n_requirements = len(requirement_text)
+        similarity = torch.zeros((n_testcases, n_requirements))
+
+        encoded_req = self.model.encode(requirement_text, convert_to_tensor=True)
+
+        for i, sentances in enumerate(test_case_sentences):
+            encoded_steps = self.model.encode(sentances, convert_to_tensor=True)
+            sim_matrix = util.cos_sim(encoded_steps,encoded_req)
+            similarity[i] = sim_matrix.max(dim=0).values
+
+
+
         return similarity
     
 
@@ -59,7 +70,9 @@ class SemanticEngine:
             matches =[]
             if row_index in grouped:
                 matches=[
-                    {"TestCase": testcases[col].summary, "Similarity": float(score)}
+                    {"TestCase": testcases[col].summary + "\n" + "\n".join(
+                        f"Step {i+1}: {s}" for i, s in enumerate(testcases[col].steps))
+                        ,"Similarity": float(score)}
                     for col, score in grouped[row_index]
                 ]
 

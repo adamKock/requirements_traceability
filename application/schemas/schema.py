@@ -9,6 +9,8 @@ class Requirement(BaseModel):
 class TestCase(BaseModel):
     id:str
     summary:str
+    steps:List[str]
+    
 
 
 class TraceabilityRequest(BaseModel):

@@ -13,7 +13,11 @@ what is the arch -
 
 Future functionality to improve and get it ready 
 Need to add on test steps to the test cases and run it through the engine 
-Need to modify to how Jira and ADO export to make it ammendable for import 
+Need to modify to how Jira and ADO export to make it ammendable for import
+to do the test steps I need to group each row by test case id in the import function
+change the schema to accept a list of test steps 
+then I need to build a helper function to take each of the steps and concat that into test case text 
+then in the conversion to tensor call the helper function  - On this step now 
 
 
 
