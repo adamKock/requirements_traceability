@@ -1,0 +1,94 @@
+[
+    {
+        "Requirement": "Users must be able to reset their password using a self service reset mechanism via email.",
+        "Match Count": 2,
+        "Matches": [
+            {
+                "TestCase": "Reset password using email link\nStep 1: Click forgot password\nStep 2: Enter registered email\nStep 3: Click link in email",
+                "Similarity": 0.7189228534698486
+            },
+            {
+                "TestCase": "Reset password with valid token\nStep 1: Open password reset email\nStep 2: Enter new password\nStep 3: Submit new password",
+                "Similarity": 0.6905771493911743
+            }
+        ]
+    },
+    {
+        "Requirement": "Users must be able to export system reports as PDF files using the reporting interface.",
+        "Match Count": 2,
+        "Matches": [
+            {
+                "TestCase": "Export sales report to PDF\nStep 1: Open reports page\nStep 2: Select sales report\nStep 3: Click export PDF",
+                "Similarity": 0.6995996236801147
+            },
+            {
+                "TestCase": "Export financial report as PDF\nStep 1: Navigate to finance reports\nStep 2: Generate report\nStep 3: Download PDF",
+                "Similarity": 0.7188988327980042
+            }
+        ]
+    },
+    {
+        "Requirement": "The application must support biometric authentication including fingerprint and facial recognition.",
+        "Match Count": 2,
+        "Matches": [
+            {
+                "TestCase": "Login using fingerprint authentication\nStep 1: Open login page\nStep 2: Scan fingerprint\nStep 3: Access dashboard",
+                "Similarity": 0.5002687573432922
+            },
+            {
+                "TestCase": "Login using facial recognition\nStep 1: Open biometric login\nStep 2: Scan face\nStep 3: Authenticate user",
+                "Similarity": 0.6021867990493774
+            }
+        ]
+    },
+    {
+        "Requirement": "Users must be able to view weather information for all company office locations.",
+        "Match Count": 1,
+        "Matches": [
+            {
+                "TestCase": "View weather for office locations\nStep 1: Open weather dashboard\nStep 2: Select office location\nStep 3: View weather details",
+                "Similarity": 0.7306922078132629
+            }
+        ]
+    },
+    {
+        "Requirement": "Users must be able to add items to a shopping cart and review them before purchase.",
+        "Match Count": 0,
+        "Matches": []
+    },
+    {
+        "Requirement": "Users must be able to log into the system using valid credentials.",
+        "Match Count": 1,
+        "Matches": [
+            {
+                "TestCase": "Login with valid credentials\nStep 1: Enter username\nStep 2: Enter password\nStep 3: Click login",
+                "Similarity": 0.5100880861282349
+            }
+        ]
+    },
+    {
+        "Requirement": "The system must allow users to complete purchases using valid payment methods.",
+        "Match Count": 1,
+        "Matches": [
+            {
+                "TestCase": "Checkout with valid payment\nStep 1: Click checkout\nStep 2: Enter payment details\nStep 3: Confirm payment",
+                "Similarity": 0.5150855779647827
+            }
+        ]
+    },
+    {
+        "Requirement": "Users must receive email notifications for important system actions such as password reset or order confirmation.",
+        "Match Count": 0,
+        "Matches": []
+    },
+    {
+        "Requirement": "Users must be able to update and manage their personal profile information.",
+        "Match Count": 0,
+        "Matches": []
+    },
+    {
+        "Requirement": "Users must be able to search for products or information within the application.",
+        "Match Count": 0,
+        "Matches": []
+    }
+]
