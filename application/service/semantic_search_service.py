@@ -27,9 +27,6 @@ class TraceabilityService:
                 .apply(list)
                 .reset_index(name="steps"))
 
-
-
-
         csv_columns = set(df.columns)
         expected_columns = set(model_class.model_fields.keys())
 

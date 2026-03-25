@@ -1,8 +1,0 @@
-﻿id,summary
-REQ-1,Verify password reset functionality
-REQ-2,Check PDF export for monthly reports
-REQ-3,Validate login with username and password
-REQ-4,Ensure fingerprint scanner works for login
-REQ-5,Trigger password recovery email link
-REQ-6,Confirm PDF file naming convention
-REQ-6,Run a password reset via email

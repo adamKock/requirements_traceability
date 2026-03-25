@@ -1,6 +1,0 @@
-﻿id,name,description
-REQ-1,The system shall allow users to reset their passwords via email.,Users must be able to reset passwords using a self service reset function 
-REQ-2,User must be able to export reports in PDF format.,User must be able to easily export reports as pdfs using a self service mechinism 
-REQ-3,The application should support biometric authentication.,Applications must support fingerprint as well as face scanning for authentication
-REQ-4,The application can tell me the weather,Users must be able to see the weather for all places where we have an office 
-REQ-5,The application must be able to make me a good golfer,It must be able to improve my golf game

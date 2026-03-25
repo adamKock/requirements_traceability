@@ -38,7 +38,7 @@ class SemanticEngine:
     def compare(self, payload:TraceabilityRequest, similarity):
         testcases = payload.test_cases
         requirements = payload.requirements
-        n_testcases, n_requirements = similarity.shape
+        n_requirements, n_testcases = similarity.shape
         print(f"{n_requirements} requirements, {n_testcases} test cases")
         threshold = 0.5
         strong_threshold = 0.6
