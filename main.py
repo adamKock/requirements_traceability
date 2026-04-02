@@ -8,7 +8,10 @@ from fastapi import FastAPI
 import uvicorn
 from application.repo.db import get_connection
 from application.repo.TensorRepository import TensorRepository
+from dotenv import load_dotenv
 
+
+load_dotenv()
 app = FastAPI()
 conn = get_connection()
 repo = TensorRepository(conn)
