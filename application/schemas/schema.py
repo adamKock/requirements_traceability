@@ -13,9 +13,6 @@ class TestCase(BaseModel):
     
 
 
-class TraceabilityRequest(BaseModel):
-    requirements: List[Requirement]
-    test_cases: List[TestCase]
 
 
 

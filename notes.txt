@@ -10,14 +10,6 @@ what is the arch -
 3 if the uploads fail the validation and error is presented saying need to map x column to y 
 
 
-Latest fixes - Sort out only pulling back the test cases with job id as currently it pulls all cases back
-Step 1 When creating test case and steps store the job ID in the DB 
-Step 2 When comparing them you only pull the test cases that refer to that job ID 
-
-Also work out why req -Users must receive email notifications for important system actions such as password reset or order confirmation."
-has no cases when it did before 
-
-
 Use UI built in the spiraupload project 
 Think about ETL - How palintir handles ontology
 Asyc request handling using queues

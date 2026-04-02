@@ -1,9 +1,7 @@
 # main.py sits in your root folder
 from application.service.semantic_search_service import TraceabilityService
 from application.service.engine import SemanticEngine
-from application.schemas.schema import Requirement, TestCase
 from application.web.controller import router
-import json
 from fastapi import FastAPI
 import uvicorn
 from application.repo.db import get_connection

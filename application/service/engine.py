@@ -1,4 +1,3 @@
-from application.schemas.schema import TraceabilityRequest
 from sentence_transformers import SentenceTransformer, util
 import torch
 from collections import defaultdict

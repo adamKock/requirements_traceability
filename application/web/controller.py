@@ -1,13 +1,9 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
 from application.schemas.schema import Requirement, TestCase
-from application.service.semantic_search_service import TraceabilityService
 from fastapi import UploadFile, File, Depends, HTTPException
 import time
 import uuid
-from fastapi import Request
 from application.web.dependancies import get_service
-from application.repo.TensorRepository import TensorRepository
 
 
 router = APIRouter()

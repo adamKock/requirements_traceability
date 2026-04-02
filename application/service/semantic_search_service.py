@@ -1,8 +1,7 @@
 from typing import List,Type
 import pandas as pd 
 from pydantic import BaseModel
-from application.schemas.schema import Requirement, TraceabilityRequest
-from application.service.engine import SemanticEngine
+from application.schemas.schema import Requirement
 
 
 class TraceabilityService:
