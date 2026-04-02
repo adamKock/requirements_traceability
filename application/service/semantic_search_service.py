@@ -1,15 +1,13 @@
-#FOr this class I need to take the csvs,
-#Create them into a list of req and test cases using the schema
 from typing import List,Type
 import pandas as pd 
 from pydantic import BaseModel
-from application.schemas.schema import TraceabilityRequest
+from application.schemas.schema import Requirement, TraceabilityRequest
 from application.service.engine import SemanticEngine
 
 
 class TraceabilityService:
-    def __init__(self):
-        self.engine = SemanticEngine()
+    def __init__(self,engine):
+        self.engine = engine
     
     def import_csv(self, file_obj, model_class:Type[BaseModel]) -> List[BaseModel]:
         #Import CSV
@@ -44,17 +42,25 @@ class TraceabilityService:
         return [model_class(**row) for row in records] 
         
        
+    def store_test_cases(self, test_cases, job_id):
+        return self.engine.store_test_cases(test_cases, job_id)
     
-    def build_payload(self, requirements, test_cases):
-        return TraceabilityRequest(
+    def compute_similarity(self, requirements):
+        return self.engine.compute_similarity(requirements)
+    
+    def run_traceability(self, requirements: List[Requirement],job_id):
+        # 1. Compute similarity against the DB (via Engine)
+        analysis = self.engine.compute_similarity(requirements,job_id)
+        print(analysis)
+        # 2. Compare
+        results = self.engine.compare(
             requirements=requirements,
-            test_cases=test_cases
+            similarity=analysis["similarity_matrix"],
+            ids=analysis["test_case_ids"],
+            job_id=job_id
         )
-        
-    def convert_to_tensor(self, payload):
-        return self.engine.convert_to_tensor(payload)
+        return results
     
-    def compare(self, payload, similarity):
-        return self.engine.compare(payload, similarity)
+ 
     
 

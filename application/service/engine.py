@@ -2,79 +2,49 @@ from application.schemas.schema import TraceabilityRequest
 from sentence_transformers import SentenceTransformer, util
 import torch
 from collections import defaultdict
+from application.repo.TensorRepository import TensorRepository
 
 
 
 class SemanticEngine:
     _model=None
    
-
     
-    def __init__(self):
+    def __init__(self,repo:TensorRepository):
         if SemanticEngine._model is None:
             SemanticEngine._model = SentenceTransformer("all-mpnet-base-v2")
         self.model = SemanticEngine._model
+        self.repo = repo  
 
-    def convert_to_tensor(self, payload:TraceabilityRequest):
-        requirement_text = [r.description for r in payload.requirements]
-        test_case_sentences = [[t.summary] + t.steps for t in payload.test_cases]
-        
-        n_testcases = len(test_case_sentences)
-        n_requirements = len(requirement_text)
-        similarity = torch.zeros((n_testcases, n_requirements))
-
-        encoded_req = self.model.encode(requirement_text, convert_to_tensor=True)
-
-        for i, sentances in enumerate(test_case_sentences):
-            encoded_steps = self.model.encode(sentances, convert_to_tensor=True)
-            sim_matrix = util.cos_sim(encoded_steps,encoded_req)
-            similarity[i] = sim_matrix.max(dim=0).values
-
-
-
-        return similarity.T
-    
-
-    def compare(self, payload:TraceabilityRequest, similarity):
-        testcases = payload.test_cases
-        requirements = payload.requirements
-        n_requirements, n_testcases = similarity.shape
-        print(f"{n_requirements} requirements, {n_testcases} test cases")
-        threshold = 0.5
-        strong_threshold = 0.6
-
+    def compare(self, requirements,similarity, ids, job_id):
+        print("Similarity:", similarity)
+        threshold = 0.45
         mask = similarity >= threshold
-
-        match_counts = mask.sum(dim=1)
-
-        top_scores_values = similarity.max(dim=1).values
-
-        
-        status = torch.where(
-            match_counts == 0,
-            0,
-                torch.where(top_scores_values >= strong_threshold, 1, 2))
-        status = status.tolist()
-
         rows, cols = mask.nonzero(as_tuple=True)
         matches_table = torch.stack([rows, cols, similarity[rows, cols]], dim=1)
-
         grouped = defaultdict(list)
 
-        for row, col, score in matches_table:
+        
+
+        for row, col, score in matches_table.tolist():
             grouped[int(row)].append((int(col), float(score)))
+        
+        testcase_map = self.repo.get_test_cases_by_job_id(job_id)
 
         results_list =[]
 
         for row_index in range(len(requirements)):
-            matches =[]
+            matches = []
+
             if row_index in grouped:
-                matches=[
-                    {"TestCase": testcases[col].summary + "\n" + "\n".join(
-                        f"Step {i+1}: {s}" for i, s in enumerate(testcases[col].steps))
-                        ,"Similarity": float(score)}
-                    for col, score in grouped[row_index]
-                ]
+                matches = []
+                for col, score in grouped[row_index]:
+                    summary = testcase_map[ids[col]]
+                    matches.append({
+                        "TestCaseID": ids[col],
+                        "TestCase": summary,
+                        "Similarity": float(score)
+                    })
 
             result ={
                 "Requirement": requirements[row_index].description,
@@ -86,8 +56,32 @@ class SemanticEngine:
         return results_list
    
     
-      
-       
+    def store_test_cases(self, test_cases, job_id):
+        for t in test_cases:
+            emb = self.model.encode(t.summary, convert_to_tensor=True)
+            test_case_id = self.repo.create_test_case(t.summary,job_id,emb)
+            if t.steps:
+                step_embeddings = self.model.encode(t.steps,convert_to_tensor=True)
+                for step, step_emb in zip(t.steps, step_embeddings):
+                    self.repo.store_step(step, step_emb, test_case_id, job_id)
+
+
+    def compute_similarity(self, requirements,job_id):
+        requirement_embeddings = self.model.encode(
+            [r.description for r in requirements],
+            convert_to_tensor=True)
+        
+        ids, test_case_embeddings = self.repo.get_all_test_case_embeddings(job_id)
+        sim_matrix = util.cos_sim(
+            requirement_embeddings.cpu(),
+            test_case_embeddings.cpu()
+        )
+
+        return {
+            "similarity_matrix": sim_matrix,
+            "test_case_ids": ids,
+            "requirements": requirements
+        }
         
         
 

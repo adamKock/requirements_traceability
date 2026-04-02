@@ -6,8 +6,15 @@ from application.web.controller import router
 import json
 from fastapi import FastAPI
 import uvicorn
+from application.repo.db import get_connection
+from application.repo.TensorRepository import TensorRepository
 
 app = FastAPI()
+conn = get_connection()
+repo = TensorRepository(conn)
+engine = SemanticEngine(repo)
+traceability_service = TraceabilityService(engine)
+app.state.traceability_service = traceability_service
 
 app.include_router(router)
 
