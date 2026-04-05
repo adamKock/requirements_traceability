@@ -10,12 +10,12 @@ what is the arch -
 3 if the uploads fail the validation and error is presented saying need to map x column to y 
 
 
+ETL - 
 Use UI built in the spiraupload project 
 Think about ETL - How palintir handles ontology
 Asyc request handling using queues
 Look into podman
-
-
+Generating Doc/Inline comments 
 
 
 

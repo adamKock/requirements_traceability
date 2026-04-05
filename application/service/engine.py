@@ -10,6 +10,7 @@ class SemanticEngine:
    
     
     def __init__(self,repo:TensorRepository):
+        
         if SemanticEngine._model is None:
             SemanticEngine._model = SentenceTransformer("all-mpnet-base-v2")
         self.model = SemanticEngine._model

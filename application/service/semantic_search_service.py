@@ -2,15 +2,50 @@ from typing import List,Type
 import pandas as pd 
 from pydantic import BaseModel
 from application.schemas.schema import Requirement
+from io import StringIO
+
+
+
+#ID,Work Item Type,Title,Test Step,Step Action,Step Expected,Area Path,Assigned To,State
 
 
 class TraceabilityService:
     def __init__(self,engine):
         self.engine = engine
+
+
     
-    def import_csv(self, file_obj, model_class:Type[BaseModel]) -> List[BaseModel]:
-        #Import CSV
+    def map_test_cases(self,file_obj):
         df = pd.read_csv(file_obj)
+        df.dropna(how='all', axis=1, inplace=True)
+        columns_list = df.columns.tolist()
+        Test_Case_Mapping = {
+            "id": ["id", "ID", "iD", "Id", "testcaseid"],
+            "Work Item Type":[ "workitemtype"],
+            "Test Step":["teststep", "teststeps","step"],
+            "Step Action":["stepaction", "stepactions","steps"],
+        }
+        reverse_map = {
+        variant: key
+            for key, variants in Test_Case_Mapping.items() 
+            for variant in variants}
+        
+        new_columns_list = [
+            reverse_map.get(col, col) 
+            for col in columns_list]
+        
+        df.columns = new_columns_list 
+
+        output = StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
+
+        return output
+
+        
+    
+    def import_csv(self, csv, model_class:Type[BaseModel]) -> List[BaseModel]:
+        df = pd.read_csv(csv)
         df.dropna(how='all', axis=1, inplace=True)
 
         #Clean Columns 

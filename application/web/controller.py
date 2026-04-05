@@ -11,9 +11,13 @@ router = APIRouter()
 job_store={}
 
 
+#This endpoint is for requirement upload and then storage. 
+# We upload, strip and then store the requirements in the local job store 
 @router.post("/validate_requirements")
 def validate_requirements(service = Depends(get_service), requirements_file:UploadFile = File(...)):
+    
     try:
+        
         requirements_list = service.import_csv(requirements_file.file, Requirement)
         job_id = str(uuid.uuid4())
 
@@ -29,13 +33,15 @@ def validate_requirements(service = Depends(get_service), requirements_file:Uplo
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
+#This endpoint is for test case upload and storage to the DB 
 @router.post("/validate/testcases/{job_id}")
 def validate_testcases(job_id:str, testcases_file:UploadFile = File(...),service = Depends(get_service),):
 
     if job_id not in job_store:
         raise HTTPException(status_code=404, detail="ID not found")
     try:
-        test_cases_list = service.import_csv(testcases_file.file, TestCase)
+        test_cases_mapped = service.map_test_cases(testcases_file.file)
+        test_cases_list = service.import_csv(test_cases_mapped, TestCase)
         service.store_test_cases(test_cases_list, job_id)
         job_store[job_id]["test_cases_ready"] = True
         
@@ -44,7 +50,8 @@ def validate_testcases(job_id:str, testcases_file:UploadFile = File(...),service
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
+#This endpoint takes the requirements in the job store creates embeddings then runs similaritys against them
+#vs embeddings in the DB for the test cases 
 @router.post("/submit/{job_id}")
 def submit(job_id:str, service = Depends(get_service),):
     if job_id not in job_store:

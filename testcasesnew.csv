@@ -1,0 +1,31 @@
+testcaseid,summary,Preconditions,StepNumber,StepAction,ExpectedResult,TestSuite,Priority,Status,RequirementID,AssignedTo
+TC-001,Reset password using email link,User on login page,1,Click forgot password,Reset screen appears,Authentication,High,Active,REQ-1,QA-Team
+TC-001,Reset password using email link,User on login page,2,Enter registered email,Reset email sent,Authentication,High,Active,REQ-1,QA-Team
+TC-001,Reset password using email link,User on login page,3,Click link in email,Password reset screen appears,Authentication,High,Active,REQ-1,QA-Team
+TC-002,Reset password with valid token,User requested reset,1,Open password reset email,Email opened,Authentication,Medium,Active,REQ-1,QA-Team
+TC-002,Reset password with valid token,User requested reset,2,Enter new password,Password accepted,Authentication,Medium,Active,REQ-1,QA-Team
+TC-002,Reset password with valid token,User requested reset,3,Submit new password,Password updated,Authentication,Medium,Active,REQ-1,QA-Team
+TC-003,Export sales report to PDF,User logged in,1,Open reports page,Reports page loads,Reporting,High,Active,REQ-2,QA-Team
+TC-003,Export sales report to PDF,User logged in,2,Select sales report,Report generated,Reporting,High,Active,REQ-2,QA-Team
+TC-003,Export sales report to PDF,User logged in,3,Click export PDF,PDF downloaded,Reporting,High,Active,REQ-2,QA-Team
+TC-004,Export financial report as PDF,User logged in,1,Navigate to finance reports,Finance reports open,Reporting,Medium,Active,REQ-2,QA-Team
+TC-004,Export financial report as PDF,User logged in,2,Generate report,Report appears,Reporting,Medium,Active,REQ-2,QA-Team
+TC-004,Export financial report as PDF,User logged in,3,Download PDF,PDF saved,Reporting,Medium,Active,REQ-2,QA-Team
+TC-005,Login using fingerprint authentication,Biometric enabled device,1,Open login page,Login page displayed,Security,High,Active,REQ-3,QA-Team
+TC-005,Login using fingerprint authentication,Biometric enabled device,2,Scan fingerprint,Fingerprint verified,Security,High,Active,REQ-3,QA-Team
+TC-005,Login using fingerprint authentication,Biometric enabled device,3,Access dashboard,User logged in,Security,High,Active,REQ-3,QA-Team
+TC-006,Login using facial recognition,Biometric enabled device,1,Open biometric login,Face scanner opens,Security,Medium,Active,REQ-3,QA-Team
+TC-006,Login using facial recognition,Biometric enabled device,2,Scan face,Face recognized,Security,Medium,Active,REQ-3,QA-Team
+TC-006,Login using facial recognition,Biometric enabled device,3,Authenticate user,User logged in,Security,Medium,Active,REQ-3,QA-Team
+TC-007,View weather for office locations,User logged in,1,Open weather dashboard,Dashboard loads,Information,Low,Active,REQ-4,QA-Team
+TC-007,View weather for office locations,User logged in,2,Select office location,Location selected,Information,Low,Active,REQ-4,QA-Team
+TC-007,View weather for office locations,User logged in,3,View weather details,Weather displayed,Information,Low,Active,REQ-4,QA-Team
+TC-008,Add item to shopping cart,User browsing products,1,Open product page,Product displayed,Shopping,High,Active,REQ-5,QA-Team
+TC-008,Add item to shopping cart,User browsing products,2,Click add to cart,Item added,Shopping,High,Active,REQ-5,QA-Team
+TC-008,Add item to shopping cart,User browsing products,3,Open cart,Item visible,Shopping,High,Active,REQ-5,QA-Team
+TC-009,Login with valid credentials,User on login page,1,Enter username,Username accepted,Authentication,High,Active,REQ-6,QA-Team
+TC-009,Login with valid credentials,User on login page,2,Enter password,Password accepted,Authentication,High,Active,REQ-6,QA-Team
+TC-009,Login with valid credentials,User on login page,3,Click login,User redirected to dashboard,Authentication,High,Active,REQ-6,QA-Team
+TC-010,Checkout with valid payment,User has items in cart,1,Click checkout,Checkout page loads,Checkout,High,Active,REQ-7,QA-Team
+TC-010,Checkout with valid payment,User has items in cart,2,Enter payment details,Payment accepted,Checkout,High,Active,REQ-7,QA-Team
+TC-010,Checkout with valid payment,User has items in cart,3,Confirm payment,Order confirmed,Checkout,High,Active,REQ-7,QA-Team
