@@ -17,8 +17,8 @@ job_store={}
 def validate_requirements(service = Depends(get_service), requirements_file:UploadFile = File(...)):
     
     try:
-        
-        requirements_list = service.import_csv(requirements_file.file, Requirement)
+        requirements_mapped = service.map_requirements(requirements_file.file)
+        requirements_list = service.import_csv(requirements_mapped, Requirement)
         job_id = str(uuid.uuid4())
 
         job_store[job_id] = {
@@ -53,7 +53,7 @@ def validate_testcases(job_id:str, testcases_file:UploadFile = File(...),service
 #This endpoint takes the requirements in the job store creates embeddings then runs similaritys against them
 #vs embeddings in the DB for the test cases 
 @router.post("/submit/{job_id}")
-def submit(job_id:str, service = Depends(get_service),):
+def submit(job_id:str, service = Depends(get_service)):
     if job_id not in job_store:
         raise HTTPException(status_code=404, detail="ID not found")
     

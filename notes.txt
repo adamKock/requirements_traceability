@@ -14,7 +14,7 @@ ETL -
 Use UI built in the spiraupload project 
 Think about ETL - How palintir handles ontology
 Asyc request handling using queues
-Look into podman
+Look into podman for containerization
 Generating Doc/Inline comments 
 
 

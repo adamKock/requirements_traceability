@@ -13,6 +13,32 @@ class TraceabilityService:
     def __init__(self,engine):
         self.engine = engine
 
+    def map_requirements(self, file_obj):
+        df= pd.read_csv(file_obj)
+        df.dropna(how='all', axis=1, inplace=True)
+        req_columns_list = df.columns.tolist()
+        requirement_mapping={
+            "id": ["id", "ID", "iD", "Id", "requirementid"],
+            "name": ["name", "Name", "requirementname", "title", "Title", "summary", "Summary"],
+            "description": ["description", "Description", "requirementdescription", "description", "Description"]
+        }
+
+        rev_map = {
+            variant: key
+            for key, variants in requirement_mapping.items()
+            for variant in variants
+        }
+        new_req_columns = [
+            rev_map.get(col, col)
+            for col in req_columns_list
+
+        ]
+        df.columns = new_req_columns
+        output = StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
+        return output
+
 
     
     def map_test_cases(self,file_obj):
@@ -21,9 +47,9 @@ class TraceabilityService:
         columns_list = df.columns.tolist()
         Test_Case_Mapping = {
             "id": ["id", "ID", "iD", "Id", "testcaseid"],
-            "Work Item Type":[ "workitemtype"],
-            "Test Step":["teststep", "teststeps","step"],
-            "Step Action":["stepaction", "stepactions","steps"],
+            "summary":["Summary", "Title", "title"],
+            "stepnumber":["teststep", "teststeps","step", "Test Steps"],
+            "stepaction":["stepactions","StepAction"]
         }
         reverse_map = {
         variant: key
@@ -50,6 +76,7 @@ class TraceabilityService:
 
         #Clean Columns 
         df.columns = df.columns.str.strip().str.lower()
+        print(df.columns)
 
         if "id" in df.columns and "stepaction" in df.columns:
             if "stepnumber" in df.columns:

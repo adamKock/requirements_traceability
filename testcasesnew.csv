@@ -1,4 +1,4 @@
-testcaseid,summary,Preconditions,StepNumber,StepAction,ExpectedResult,TestSuite,Priority,Status,RequirementID,AssignedTo
+testcaseid,Title,Preconditions,step,StepAction,ExpectedResult,TestSuite,Priority,Status,RequirementID,AssignedTo
 TC-001,Reset password using email link,User on login page,1,Click forgot password,Reset screen appears,Authentication,High,Active,REQ-1,QA-Team
 TC-001,Reset password using email link,User on login page,2,Enter registered email,Reset email sent,Authentication,High,Active,REQ-1,QA-Team
 TC-001,Reset password using email link,User on login page,3,Click link in email,Password reset screen appears,Authentication,High,Active,REQ-1,QA-Team
