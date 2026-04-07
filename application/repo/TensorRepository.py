@@ -8,6 +8,7 @@ class TensorRepository:
                 self.curr.execute("CREATE TABLE IF NOT EXISTS requirements (id SERIAL PRIMARY KEY, requirement_text TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_cases (id SERIAL PRIMARY KEY, summary TEXT NOT NULL, job_id TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_steps (id SERIAL PRIMARY KEY, test_case_id INT REFERENCES test_cases(id), step_text TEXT NOT NULL,job_id TEXT NOT NULL, embeddings BYTEA)")
+                self.curr.execute("CREATE TABLE IF NOT EXISTS test_mappings (id SERIAL PRIMARY KEY, cannonical_field TEXT NOT NULL, varient TEXT NOT NULL)")
                 self.conn.commit()
                 self.curr.close()
 
@@ -62,6 +63,26 @@ class TensorRepository:
                         embeddings.append(emb.cpu())
 
                 return ids, torch.stack(embeddings)
+        
+        def store_test_mappings(self,Test_Case_Mapping):
+                curr = self.conn.cursor()
+                for key, variants in Test_Case_Mapping.items():
+                        for variant in variants:
+                                curr.execute("INSERT INTO test_mappings (cannonical_field, varient) VALUES (%s, %s)",(key,variant))
+                self.conn.commit()
+                curr.close()
+
+        def get_test_mappings(self):
+                curr = self.conn.cursor()
+                curr.execute("SELECT * FROM test_mappings")
+                rows = curr.fetchall()
+                curr.close()
+                return rows
+
+
+        def store_requirement_mappings(self):
+                pass
+
                 
 
 

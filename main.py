@@ -1,7 +1,7 @@
 # main.py sits in your root folder
 from application.service.semantic_search_service import TraceabilityService
 from application.service.engine import SemanticEngine
-from application.web.controller import router
+from application.web.controller import lifespan, router
 from fastapi import FastAPI
 import uvicorn
 from application.repo.db import get_connection
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 conn = get_connection()
 repo = TensorRepository(conn)
 engine = SemanticEngine(repo)

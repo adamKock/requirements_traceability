@@ -59,9 +59,7 @@ class TraceabilityService:
         new_columns_list = [
             reverse_map.get(col, col) 
             for col in columns_list]
-        
         df.columns = new_columns_list 
-
         output = StringIO()
         df.to_csv(output, index=False)
         output.seek(0)
@@ -122,6 +120,10 @@ class TraceabilityService:
         )
         return results
     
- 
+    def store_test_mappings(self,test_mappings):
+        self.engine.store_test_mappings(test_mappings)
+
+    def get_all_test_mappings(self):
+        return self.engine.get_all_test_mappings()
     
 

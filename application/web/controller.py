@@ -1,18 +1,36 @@
 from fastapi import APIRouter
+from fastapi import FastAPI
 from application.schemas.schema import Requirement, TestCase
 from fastapi import UploadFile, File, Depends, HTTPException
+from contextlib import asynccontextmanager
 import time
 import uuid
 from application.web.dependancies import get_service
 
 
 router = APIRouter()
-
 job_store={}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    service = app.state.traceability_service
+    default_test_mapping = {
+            "id": ["id", "ID", "iD", "Id", "testcaseid"],
+            "summary":["Summary", "Title", "title"],
+            "stepnumber":["teststep", "teststeps","step", "Test Steps"],
+            "stepaction":["stepactions","StepAction"]
+        }
+    
+    mapping = service.get_all_test_mappings()
+    if not mapping:
+        service.store_test_mappings(default_test_mapping)
+    else:
+        pass
 
+    yield 
+    print("App Shutting Down")
 
-#This endpoint is for requirement upload and then storage. 
-# We upload, strip and then store the requirements in the local job store 
+app = FastAPI(lifespan=lifespan)
+
 @router.post("/validate_requirements")
 def validate_requirements(service = Depends(get_service), requirements_file:UploadFile = File(...)):
     

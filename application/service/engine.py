@@ -65,6 +65,12 @@ class SemanticEngine:
                 for step, step_emb in zip(t.steps, step_embeddings):
                     self.repo.store_step(step, step_emb, test_case_id, job_id)
 
+    def store_test_mappings(self,test_mappings):
+        self.repo.store_test_mappings(test_mappings)
+
+    def get_all_test_mappings(self):
+        return self.repo.get_test_mappings()
+
 
     def compute_similarity(self, requirements,job_id):
         requirement_embeddings = self.model.encode(
