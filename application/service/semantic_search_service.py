@@ -17,12 +17,7 @@ class TraceabilityService:
         df= pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         req_columns_list = df.columns.tolist()
-        requirement_mapping={
-            "id": ["id", "ID", "iD", "Id", "requirementid"],
-            "name": ["name", "Name", "requirementname", "title", "Title", "summary", "Summary"],
-            "description": ["description", "Description", "requirementdescription", "description", "Description"]
-        }
-
+        requirement_mapping = self.engine.get_requirement_mappings()
         rev_map = {
             variant: key
             for key, variants in requirement_mapping.items()
@@ -45,12 +40,8 @@ class TraceabilityService:
         df = pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         columns_list = df.columns.tolist()
-        Test_Case_Mapping = {
-            "id": ["id", "ID", "iD", "Id", "testcaseid"],
-            "summary":["Summary", "Title", "title"],
-            "stepnumber":["teststep", "teststeps","step", "Test Steps"],
-            "stepaction":["stepactions","StepAction"]
-        }
+        Test_Case_Mapping = self.engine.get_test_mappings()
+
         reverse_map = {
         variant: key
             for key, variants in Test_Case_Mapping.items() 
@@ -59,6 +50,7 @@ class TraceabilityService:
         new_columns_list = [
             reverse_map.get(col, col) 
             for col in columns_list]
+            
         df.columns = new_columns_list 
         output = StringIO()
         df.to_csv(output, index=False)
@@ -125,5 +117,11 @@ class TraceabilityService:
 
     def get_all_test_mappings(self):
         return self.engine.get_all_test_mappings()
+    
+    def store_requirement_mappings(self,requirement_mappings):
+        self.engine.store_requirement_mappings(requirement_mappings)
+
+    def get_all_requirement_mappings(self):
+        return self.engine.get_requirement_mappings()
     
 

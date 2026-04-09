@@ -20,8 +20,16 @@ async def lifespan(app: FastAPI):
             "stepaction":["stepactions","StepAction"]
         }
     
-    mapping = service.get_all_test_mappings()
-    if not mapping:
+    default_requirement_mapping={
+            "id": ["id", "ID", "iD", "Id", "requirementid"],
+            "name": ["name", "Name", "requirementname", "title", "Title", "summary", "Summary"],
+            "description": ["description", "Description", "requirementdescription", "description", "Description"]
+        }
+    requirement_mapping = service.get_all_requirement_mappings()
+    test_mapping = service.get_all_test_mappings()
+
+    if not test_mapping or not requirement_mapping:
+        service.store_requirement_mappings(default_requirement_mapping)
         service.store_test_mappings(default_test_mapping)
     else:
         pass

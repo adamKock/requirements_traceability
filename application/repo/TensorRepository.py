@@ -9,6 +9,7 @@ class TensorRepository:
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_cases (id SERIAL PRIMARY KEY, summary TEXT NOT NULL, job_id TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_steps (id SERIAL PRIMARY KEY, test_case_id INT REFERENCES test_cases(id), step_text TEXT NOT NULL,job_id TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_mappings (id SERIAL PRIMARY KEY, cannonical_field TEXT NOT NULL, varient TEXT NOT NULL)")
+                self.curr.execute("CREATE TABLE IF NOT EXISTS requirement_mappings (id SERIAL PRIMARY KEY, cannonical_field TEXT NOT NULL, varient TEXT NOT NULL)")
                 self.conn.commit()
                 self.curr.close()
 
@@ -79,9 +80,20 @@ class TensorRepository:
                 curr.close()
                 return rows
 
+        def store_requirement_mappings(self, requirement_mapping):
+                curr = self.conn.cursor()
+                for key, variants in requirement_mapping.items():
+                        for variant in variants:
+                                curr.execute("INSERT INTO requirement_mappings (cannonical_field, varient) VALUES (%s, %s)",(key,variant))
+                self.conn.commit()
+                curr.close()
 
-        def store_requirement_mappings(self):
-                pass
+        def get_requirement_mappings(self):
+                curr = self.conn.cursor()
+                curr.execute("SELECT * FROM requirement_mappings")
+                rows = curr.fetchall()
+                curr.close()
+                return rows
 
                 
 

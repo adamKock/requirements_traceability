@@ -70,7 +70,12 @@ class SemanticEngine:
 
     def get_all_test_mappings(self):
         return self.repo.get_test_mappings()
+    
+    def store_requirement_mappings(self,requirement_mappings):
+        self.repo.store_requirement_mappings(requirement_mappings)
 
+    def get_requirement_mappings(self):
+        return self.repo.get_requirement_mappings()
 
     def compute_similarity(self, requirements,job_id):
         requirement_embeddings = self.model.encode(
