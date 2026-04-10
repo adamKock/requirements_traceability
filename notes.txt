@@ -17,10 +17,6 @@ Asyc request handling using queues
 Look into podman for containerization
 Generating Doc/Inline comments 
 
-Next time - I have put mappings for test cases in DB 
-now I need to update service methods that map and import csv to make it all run
-Continue to update service with requirement mappings issue is list vs dict.items 
-
 
 
 

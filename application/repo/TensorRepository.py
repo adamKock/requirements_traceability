@@ -75,10 +75,15 @@ class TensorRepository:
 
         def get_test_mappings(self):
                 curr = self.conn.cursor()
-                curr.execute("SELECT * FROM test_mappings")
+                curr.execute("SELECT cannonical_field, varient FROM test_mappings")
                 rows = curr.fetchall()
                 curr.close()
-                return rows
+                mapping={}
+                for standard, varient in rows:
+                        if standard not in mapping:
+                                mapping[standard]=[]
+                        mapping[standard].append(varient)
+                return mapping
 
         def store_requirement_mappings(self, requirement_mapping):
                 curr = self.conn.cursor()
@@ -90,10 +95,15 @@ class TensorRepository:
 
         def get_requirement_mappings(self):
                 curr = self.conn.cursor()
-                curr.execute("SELECT * FROM requirement_mappings")
+                curr.execute("SELECT cannonical_field, varient FROM requirement_mappings")
                 rows = curr.fetchall()
                 curr.close()
-                return rows
+                mapping ={}
+                for standard,varient in rows:
+                        if standard not in mapping:
+                                mapping[standard]=[]
+                        mapping[standard].append(varient)
+                return mapping
 
                 
 

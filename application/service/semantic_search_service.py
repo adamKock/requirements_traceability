@@ -18,11 +18,13 @@ class TraceabilityService:
         df.dropna(how='all', axis=1, inplace=True)
         req_columns_list = df.columns.tolist()
         requirement_mapping = self.engine.get_requirement_mappings()
+        
         rev_map = {
-            variant: key
-            for key, variants in requirement_mapping.items()
-            for variant in variants
+            varient:key
+            for key, varients in requirement_mapping.items()  
+            for varient in varients     
         }
+
         new_req_columns = [
             rev_map.get(col, col)
             for col in req_columns_list
@@ -40,7 +42,7 @@ class TraceabilityService:
         df = pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         columns_list = df.columns.tolist()
-        Test_Case_Mapping = self.engine.get_test_mappings()
+        Test_Case_Mapping = self.engine.get_all_test_mappings()
 
         reverse_map = {
         variant: key
