@@ -4,11 +4,6 @@ from pydantic import BaseModel
 from application.schemas.schema import Requirement
 from io import StringIO
 
-
-
-#ID,Work Item Type,Title,Test Step,Step Action,Step Expected,Area Path,Assigned To,State
-
-
 class TraceabilityService:
     def __init__(self,engine):
         self.engine = engine

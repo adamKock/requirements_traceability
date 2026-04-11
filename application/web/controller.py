@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
         pass
 
     yield 
-    print("App Shutting Down")
+    print("App Finished Pre Run")
 
 app = FastAPI(lifespan=lifespan)
 
