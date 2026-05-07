@@ -103,8 +103,7 @@ class TraceabilityService:
         # 2. Compare
         results = self.engine.compare(
             requirements=requirements,
-            similarity=analysis["similarity_matrix"],
-            ids=analysis["test_case_ids"],
+            analysis=analysis,
             job_id=job_id
         )
         return results
@@ -120,5 +119,11 @@ class TraceabilityService:
 
     def get_all_requirement_mappings(self):
         return self.engine.get_requirement_mappings()
+    
+    def normalize_mapping(self,mapping: dict) -> dict:
+        return {
+            k.lower(): [item.lower() for item in v_list]
+            for k, v_list in mapping.items()
+        }
     
 

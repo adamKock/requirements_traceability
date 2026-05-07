@@ -1,5 +1,6 @@
 import pickle
 import torch
+from collections import defaultdict
 class TensorRepository:
 
         def __init__(self, connection):
@@ -104,6 +105,24 @@ class TensorRepository:
                                 mapping[standard]=[]
                         mapping[standard].append(varient)
                 return mapping
+        
+        def get_all_step_embeddings(self, job_id):
+                curr = self.conn.cursor()
+                # Fetch steps and link them to their parent test case
+                curr.execute("""
+                        SELECT test_case_id, embeddings 
+                        FROM test_steps 
+                        WHERE job_id = %s AND embeddings IS NOT NULL 
+                        ORDER BY test_case_id
+                        """, (job_id,))
+                rows = curr.fetchall()
+                curr.close()
+
+                step_data = defaultdict(list)
+                for tc_id, emb_blob in rows:
+                        step_data[tc_id].append(pickle.loads(emb_blob).cpu())
+    
+                return step_data # Dictionary: {test_case_id: [tensor1, tensor2, ...]}
 
                 
 
