@@ -3,7 +3,6 @@ ETL -
 Asyc request handling using queues
 Look into podman for containerization
 Generating Doc/Inline comments 
-Look into DB migrations scripts 
 Docker compose 
 
 
