@@ -24,7 +24,6 @@ async def lifespan(app: FastAPI):
             "stepaction":["stepactions","stepaction"]
         })
   
-    
     default_requirement_mapping=service.normalize_mapping({
             "id": ["id","requirementid"],
             "name": ["name","requirementname", "title","summary"],

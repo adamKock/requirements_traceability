@@ -6,7 +6,6 @@ class TensorRepository:
         def __init__(self, connection):
                 self.conn = connection
                 self.curr = connection.cursor()
-                self.curr.execute("CREATE TABLE IF NOT EXISTS requirements (id SERIAL PRIMARY KEY, requirement_text TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_cases (id SERIAL PRIMARY KEY, summary TEXT NOT NULL, job_id TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_steps (id SERIAL PRIMARY KEY, test_case_id INT REFERENCES test_cases(id), step_text TEXT NOT NULL,job_id TEXT NOT NULL, embeddings BYTEA)")
                 self.curr.execute("CREATE TABLE IF NOT EXISTS test_mappings (id SERIAL PRIMARY KEY, cannonical_field TEXT NOT NULL, varient TEXT NOT NULL)")
@@ -16,13 +15,7 @@ class TensorRepository:
 
 
 
-        def store_requirements(self, requirement_text, embeddings):
-                curr = self.conn.cursor()
-                curr.execute("INSERT INTO requirements (requirement_text, embeddings) VALUES (%s, %s) RETURNING id",(requirement_text,pickle.dumps(embeddings),))
-                requirement_id = curr.fetchone()[0]
-                self.conn.commit()
-                curr.close()  
-                return requirement_id 
+      
         
         def create_test_case(self,summary,job_id,embedding):
                 curr = self.conn.cursor()

@@ -4,9 +4,6 @@ Asyc request handling using queues
 Look into podman for containerization
 Generating Doc/Inline comments 
 Look into DB migrations scripts 
-Look into weightings for test case to requirement/improving threshold
-Packup N8n to postgres 
-Python packages (requirements.txt, pip)
 Docker compose 
 
 
