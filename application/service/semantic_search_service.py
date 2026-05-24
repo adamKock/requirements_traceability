@@ -5,14 +5,16 @@ from application.schemas.schema import Requirement
 from io import StringIO
 
 class TraceabilityService:
-    def __init__(self,engine):
+    def __init__(self,engine, repo):
         self.engine = engine
+        self.repo = repo
 
     def map_requirements(self, file_obj):
+        
         df= pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         req_columns_list = df.columns.tolist()
-        requirement_mapping = self.engine.get_requirement_mappings()
+        requirement_mapping = self.repo.get_requirement_mappings()
         
         rev_map = {
             varient:key
@@ -37,7 +39,7 @@ class TraceabilityService:
         df = pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         columns_list = df.columns.tolist()
-        Test_Case_Mapping = self.engine.get_all_test_mappings()
+        Test_Case_Mapping = self.repo.get_test_mappings()
 
         reverse_map = {
         variant: key
@@ -109,16 +111,16 @@ class TraceabilityService:
         return results
     
     def store_test_mappings(self,test_mappings):
-        self.engine.store_test_mappings(test_mappings)
+        self.repo.store_test_mappings(test_mappings)
 
     def get_all_test_mappings(self):
-        return self.engine.get_all_test_mappings()
+        return self.repo.get_test_mappings()
     
     def store_requirement_mappings(self,requirement_mappings):
-        self.engine.store_requirement_mappings(requirement_mappings)
+        self.repo.store_requirement_mappings(requirement_mappings)
 
     def get_all_requirement_mappings(self):
-        return self.engine.get_requirement_mappings()
+        return self.repo.get_requirement_mappings()
     
     def normalize_mapping(self,mapping: dict) -> dict:
         return {

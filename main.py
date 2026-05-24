@@ -13,7 +13,7 @@ app = FastAPI(lifespan=lifespan)
 conn = get_connection()
 repo = TensorRepository(conn)
 engine = SemanticEngine(repo)
-traceability_service = TraceabilityService(engine)
+traceability_service = TraceabilityService(engine, repo)
 app.state.traceability_service = traceability_service
 
 app.include_router(router)

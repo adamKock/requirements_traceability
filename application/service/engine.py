@@ -11,7 +11,6 @@ class SemanticEngine:
    
     
     def __init__(self,repo:TensorRepository):
-        
         if SemanticEngine._model is None:
             SemanticEngine._model = SentenceTransformer("all-mpnet-base-v2")
         self.model = SemanticEngine._model
@@ -72,17 +71,6 @@ class SemanticEngine:
                 for step, step_emb in zip(t.steps, step_embeddings):
                     self.repo.store_step(step, step_emb, test_case_id, job_id)
 
-    def store_test_mappings(self,test_mappings):
-        self.repo.store_test_mappings(test_mappings)
-
-    def get_all_test_mappings(self):
-        return self.repo.get_test_mappings()
-    
-    def store_requirement_mappings(self,requirement_mappings):
-        self.repo.store_requirement_mappings(requirement_mappings)
-
-    def get_requirement_mappings(self):
-        return self.repo.get_requirement_mappings()
 
     def compute_similarity(self, requirements,job_id):
         req_embs = self.model.encode(
