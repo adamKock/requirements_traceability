@@ -13,9 +13,6 @@ class TensorRepository:
                 self.conn.commit()
                 self.curr.close()
 
-
-
-      
         
         def create_test_case(self,summary,job_id,embedding):
                 curr = self.conn.cursor()

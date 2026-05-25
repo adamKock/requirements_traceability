@@ -12,7 +12,6 @@ from application.web.dependancies import get_service
 
 
 router = APIRouter()
-#job_store={}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     service = app.state.traceability_service
@@ -81,13 +80,11 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
         raise HTTPException(status_code=404, detail="ID not found")
     job = json.loads(raw_job)
     
-    #if job_id not in job_store:
-        #raise HTTPException(status_code=404, detail="ID not found")
+  
     try:
         test_cases_mapped = service.map_test_cases(testcases_file.file)
         test_cases_list = service.import_csv(test_cases_mapped, TestCase)
         service.store_test_cases(test_cases_list, job_id)
-        #job_store[job_id]["test_cases_ready"] = True
         job["test_cases_ready"] = True
         await request.app.state.redis.hset("job_store", job_id, json.dumps(job))
         
@@ -105,10 +102,6 @@ async def submit(job_id:str,request: Request, service = Depends(get_service)):
     if not raw_job:
         raise HTTPException(status_code=404, detail="ID not found")
     
-    #if job_id not in job_store:
-        #raise HTTPException(status_code=404, detail="ID not found")
-    
-    #job = job_store[job_id]
     job = json.loads(raw_job)
 
     if not job.get("test_cases_ready"):
@@ -120,9 +113,7 @@ async def submit(job_id:str,request: Request, service = Depends(get_service)):
     try:
         req_objects = [Requirement(**r) for r in job["requirements"]]
         results = service.run_traceability(req_objects, job_id)
-        #results = service.run_traceability(job["requirements"],job_id)
         await request.app.state.redis.hdel("job_store", job_id)
-        #del job_store[job_id]
         return results
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
