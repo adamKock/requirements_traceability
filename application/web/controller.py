@@ -1,4 +1,3 @@
-from fastapi import APIRouter
 from fastapi import APIRouter, FastAPI, UploadFile, File, Depends, HTTPException, Request
 from application.schemas.schema import Requirement, TestCase
 from fastapi import UploadFile, File, Depends, HTTPException
@@ -8,14 +7,21 @@ import httpx
 import uuid
 import json
 import redis.asyncio as redis
-from application.web.dependancies import get_service
+from application.web.dependencies import get_traceability_service
+from application.repo.db import open_pool, close_pool
+import os
+
 
 
 router = APIRouter()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    service = app.state.traceability_service
+    await open_pool()
 
+    service = app.state.traceability_service
+    repo = app.state.repo
+
+    await repo.initialize_schema()
     default_test_mapping = service.normalize_mapping({
             "id": ["id", "testcaseid"],
             "summary":["summary", "title"],
@@ -28,33 +34,37 @@ async def lifespan(app: FastAPI):
             "name": ["name","requirementname", "title","summary"],
             "description": ["description","requirementdescription"]
         })
-    requirement_mapping = service.get_all_requirement_mappings()
-    test_mapping = service.get_all_test_mappings()
-
-   # Use the async client
-    app.state.redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
-    app.state.http_client = httpx.AsyncClient()
+    
+    requirement_mapping = await service.get_all_requirement_mappings()
+    test_mapping = await service.get_all_test_mappings()
 
     if not test_mapping or not requirement_mapping:
-        service.store_requirement_mappings(default_requirement_mapping)
-        service.store_test_mappings(default_test_mapping)
+        await service.store_requirement_mappings(default_requirement_mapping)
+        await service.store_test_mappings(default_test_mapping)
     else:
         pass
-
+    # Use the async client
+    app.state.redis = redis.Redis(
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT")),
+    decode_responses=True
+)
+    app.state.http_client = httpx.AsyncClient()
     yield 
     print("App Finished Pre Run")
 
     await app.state.redis.aclose()
+    await app.state.http_client.aclose()
+    await close_pool()
     print("Redis connection closed safely")
 
-app = FastAPI(lifespan=lifespan)
 
 @router.post("/validate_requirements")
-async def validate_requirements(request: Request,service = Depends(get_service), requirements_file:UploadFile = File(...)):
+async def validate_requirements(request: Request,service = Depends(get_traceability_service), requirements_file:UploadFile = File(...)):
     
     try:
-        requirements_mapped = service.map_requirements(requirements_file.file)
-        requirements_list = service.import_csv(requirements_mapped, Requirement)
+        requirements_mapped = await service.map_requirements(requirements_file.file)
+        requirements_list = await service.import_csv(requirements_mapped, Requirement)
         job_id = str(uuid.uuid4())
 
         job_data = {
@@ -73,7 +83,7 @@ async def validate_requirements(request: Request,service = Depends(get_service),
     
 #This endpoint is for test case upload and storage to the DB 
 @router.post("/validate/testcases/{job_id}")
-async def validate_testcases(job_id:str, request: Request,testcases_file:UploadFile = File(...),service = Depends(get_service),):
+async def validate_testcases(job_id:str, request: Request,testcases_file:UploadFile = File(...),service = Depends(get_traceability_service)):
     
     raw_job = await request.app.state.redis.hget("job_store", job_id)
     if not raw_job:
@@ -82,9 +92,9 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
     
   
     try:
-        test_cases_mapped = service.map_test_cases(testcases_file.file)
-        test_cases_list = service.import_csv(test_cases_mapped, TestCase)
-        service.store_test_cases(test_cases_list, job_id)
+        test_cases_mapped = await service.map_test_cases(testcases_file.file )
+        test_cases_list = await service.import_csv(test_cases_mapped, TestCase)
+        await service.store_test_cases(test_cases_list, job_id)
         job["test_cases_ready"] = True
         await request.app.state.redis.hset("job_store", job_id, json.dumps(job))
         
@@ -96,7 +106,7 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
 #This endpoint takes the requirements in the job store creates embeddings then runs similaritys against them
 #vs embeddings in the DB for the test cases 
 @router.post("/submit/{job_id}")
-async def submit(job_id:str,request: Request, service = Depends(get_service)):
+async def submit(job_id:str,request: Request, service = Depends(get_traceability_service)):
     
     raw_job = await request.app.state.redis.hget("job_store", job_id)
     if not raw_job:
@@ -112,7 +122,7 @@ async def submit(job_id:str,request: Request, service = Depends(get_service)):
 
     try:
         req_objects = [Requirement(**r) for r in job["requirements"]]
-        results = service.run_traceability(req_objects, job_id)
+        results = await service.run_traceability(req_objects, job_id)
         await request.app.state.redis.hdel("job_store", job_id)
         return results
     except ValueError as e:

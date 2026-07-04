@@ -3,19 +3,21 @@ import pandas as pd
 from pydantic import BaseModel
 from application.schemas.schema import Requirement
 from io import StringIO
+from fastapi.concurrency import run_in_threadpool
+
+
 
 class TraceabilityService:
     def __init__(self,engine, repo):
         self.engine = engine
         self.repo = repo
 
-    def map_requirements(self, file_obj):
+    async def map_requirements(self, file_obj):
         
-        df= pd.read_csv(file_obj)
+        df = await run_in_threadpool(pd.read_csv, file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         req_columns_list = df.columns.tolist()
-        requirement_mapping = self.repo.get_requirement_mappings()
-        
+        requirement_mapping = await self.repo.get_requirement_mappings()        
         rev_map = {
             varient:key
             for key, varients in requirement_mapping.items()  
@@ -35,11 +37,11 @@ class TraceabilityService:
 
 
     
-    def map_test_cases(self,file_obj):
+    async def map_test_cases(self,file_obj,):
         df = pd.read_csv(file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         columns_list = df.columns.tolist()
-        Test_Case_Mapping = self.repo.get_test_mappings()
+        Test_Case_Mapping = await self.repo.get_test_mappings()
 
         reverse_map = {
         variant: key
@@ -59,8 +61,8 @@ class TraceabilityService:
 
         
     
-    def import_csv(self, csv, model_class:Type[BaseModel]) -> List[BaseModel]:
-        df = pd.read_csv(csv)
+    async def import_csv(self, csv, model_class:Type[BaseModel]) -> List[BaseModel]:
+        df = await run_in_threadpool(pd.read_csv, csv)
         df.dropna(how='all', axis=1, inplace=True)
 
         #Clean Columns 
@@ -92,35 +94,36 @@ class TraceabilityService:
         return [model_class(**row) for row in records] 
         
        
-    def store_test_cases(self, test_cases, job_id):
-        return self.engine.store_test_cases(test_cases, job_id)
+    async def store_test_cases(self, test_cases, job_id,):
+        return await self.engine.store_test_cases(test_cases, job_id,)
     
-    def compute_similarity(self, requirements):
-        return self.engine.compute_similarity(requirements)
+    async def compute_similarity(self, requirements):
+        return await self.engine.compute_similarity(requirements)
     
-    def run_traceability(self, requirements: List[Requirement],job_id):
+    async def run_traceability(self, requirements: List[Requirement],job_id,):
         # 1. Compute similarity against the DB (via Engine)
-        analysis = self.engine.compute_similarity(requirements,job_id)
+        analysis = await self.engine.compute_similarity(requirements,job_id,)
         print(analysis)
         # 2. Compare
-        results = self.engine.compare(
+        results = await self.engine.compare(
             requirements=requirements,
             analysis=analysis,
-            job_id=job_id
+            job_id=job_id,
+            
         )
         return results
     
-    def store_test_mappings(self,test_mappings):
-        self.repo.store_test_mappings(test_mappings)
+    async def store_test_mappings(self,test_mappings, ):
+        await self.repo.store_test_mappings(test_mappings,)
 
-    def get_all_test_mappings(self):
-        return self.repo.get_test_mappings()
+    async def get_all_test_mappings(self, ):
+        return await self.repo.get_test_mappings()
     
-    def store_requirement_mappings(self,requirement_mappings):
-        self.repo.store_requirement_mappings(requirement_mappings)
+    async def store_requirement_mappings(self,requirement_mappings, ):
+        await self.repo.store_requirement_mappings(requirement_mappings, )
 
-    def get_all_requirement_mappings(self):
-        return self.repo.get_requirement_mappings()
+    async def get_all_requirement_mappings(self, ):
+        return await self.repo.get_requirement_mappings()
     
     def normalize_mapping(self,mapping: dict) -> dict:
         return {

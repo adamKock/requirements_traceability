@@ -3,7 +3,7 @@ import torch
 from collections import defaultdict
 from application.repo.TensorRepository import TensorRepository
 import math
-
+from fastapi.concurrency import run_in_threadpool
 
 
 class SemanticEngine:
@@ -17,7 +17,7 @@ class SemanticEngine:
         self.repo = repo  
         self.device = self.model.device
 
-    def compare(self, requirements,job_id,analysis):
+    async def compare(self, requirements,job_id,analysis):
         summary_sim = analysis["summary_matrix"].to(self.device)
         step_sim = analysis["step_matrix"].to(self.device)
         ids = analysis["test_case_ids"]
@@ -36,7 +36,7 @@ class SemanticEngine:
 
      
         
-        testcase_map = self.repo.get_test_cases_by_job_id(job_id)
+        testcase_map = await self.repo.get_test_cases_by_job_id(job_id)
         results_list =[]
 
         for row_index in range(len(requirements)):
@@ -62,29 +62,32 @@ class SemanticEngine:
         return results_list
    
     
-    def store_test_cases(self, test_cases, job_id):
+    async def store_test_cases(self, test_cases, job_id):
         for t in test_cases:
             emb = self.model.encode(t.summary, convert_to_tensor=True)
-            test_case_id = self.repo.create_test_case(t.summary,job_id,emb)
+            test_case_id = await self.repo.create_test_case(t.summary,job_id,emb)
             if t.steps:
-                step_embeddings = self.model.encode(t.steps,convert_to_tensor=True)
+                step_embeddings = await run_in_threadpool(self.model.encode, t.steps, convert_to_tensor=True)
                 for step, step_emb in zip(t.steps, step_embeddings):
                     self.repo.store_step(step, step_emb, test_case_id, job_id)
 
 
-    def compute_similarity(self, requirements,job_id):
-        req_embs = self.model.encode(
+    async def compute_similarity(self, requirements,job_id):
+        req_embs = await run_in_threadpool(
+            self.model.encode,
             [r.description for r in requirements],
-            convert_to_tensor=True).to(self.device)
+            convert_to_tensor=True
+        )
+        req_embs = req_embs.to(self.device)
         
         #Test Summary 
-        tc_ids, tc_embs = self.repo.get_all_test_case_embeddings(job_id)
+        tc_ids, tc_embs = await self.repo.get_all_test_case_embeddings(job_id)
         tc_embs = tc_embs.to(self.device)
 
         summary_sim_matrix = util.cos_sim(req_embs,tc_embs)
 
         #Step Embeddings 
-        step_data = self.repo.get_all_step_embeddings(job_id)
+        step_data = await self.repo.get_all_step_embeddings(job_id)
         num_reqs=len(requirements)
         num_tcs=len(tc_ids)
 
