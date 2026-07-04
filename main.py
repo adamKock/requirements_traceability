@@ -3,21 +3,19 @@ from application.service.engine import SemanticEngine
 from application.web.controller import lifespan, router
 from fastapi import FastAPI
 import uvicorn
-from application.repo.db import get_connection
 from application.repo.TensorRepository import TensorRepository
 from dotenv import load_dotenv
 
-
 load_dotenv()
 app = FastAPI(lifespan=lifespan)
-conn = get_connection()
-repo = TensorRepository(conn)
+
+repo = TensorRepository()
 engine = SemanticEngine(repo)
 traceability_service = TraceabilityService(engine, repo)
-app.state.traceability_service = traceability_service
 
+app.state.repo = repo
+app.state.traceability_service = traceability_service
 app.include_router(router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-    
