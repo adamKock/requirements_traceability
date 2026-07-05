@@ -1,8 +1,8 @@
-import pickle
 import torch
 from collections import defaultdict
 from fastapi import Depends
 from application.repo.db import DB_POOL
+from application.repo.tensor_codec import encode_tensor, decode_tensor
 
 
 class TensorRepository:
@@ -46,7 +46,7 @@ class TensorRepository:
         async def create_test_case(self,summary,job_id,embedding):
                 async with DB_POOL.connection() as conn:
                         async with conn.cursor() as cursor:
-                                await cursor.execute("INSERT INTO test_cases (summary,job_id,embeddings) VALUES (%s, %s,%s) RETURNING id",(summary,job_id,pickle.dumps(embedding),))
+                                await cursor.execute("INSERT INTO test_cases (summary,job_id,embeddings) VALUES (%s, %s,%s) RETURNING id",(summary,job_id,encode_tensor(embedding),))
                                 row = await cursor.fetchone()
                                 test_case_id = row[0]
                                  
@@ -56,7 +56,7 @@ class TensorRepository:
         async def store_step(self, step_text, embeddings,test_case_id,job_id):
                 async with DB_POOL.connection() as conn:
                         async with conn.cursor() as cursor:
-                                await cursor.execute("INSERT INTO test_steps (test_case_id,step_text, job_id, embeddings) VALUES (%s,%s,%s,%s) RETURNING id",(test_case_id,step_text,job_id,pickle.dumps(embeddings),))
+                                await cursor.execute("INSERT INTO test_steps (test_case_id,step_text, job_id, embeddings) VALUES (%s,%s,%s,%s) RETURNING id",(test_case_id,step_text,job_id,encode_tensor(embeddings),))
                                 row = await cursor.fetchone()
                                 step_id  = row[0]
 
@@ -85,7 +85,7 @@ class TensorRepository:
                                         return [], None
                                 for test_case_id, emb_blob in rows:
                                         ids.append(test_case_id)
-                                        emb = pickle.loads(emb_blob)
+                                        emb = decode_tensor(emb_blob)
                                         embeddings.append(emb.cpu())
                                 return ids, torch.stack(embeddings)
         
@@ -143,7 +143,7 @@ class TensorRepository:
                                 
                                 step_data = defaultdict(list)
                                 for tc_id, emb_blob in rows:
-                                        step_data[tc_id].append(pickle.loads(emb_blob).cpu())
+                                        step_data[tc_id].append(decode_tensor(emb_blob).cpu())
                                 return step_data # Dictionary: {test_case_id: [tensor1, tensor2, ...]}
 
                 

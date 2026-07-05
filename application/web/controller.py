@@ -10,10 +10,16 @@ import redis.asyncio as redis
 from application.web.dependencies import get_traceability_service
 from application.repo.db import open_pool, close_pool
 import os
+from application.web.auth import verify_api_key
 
 
 
-router = APIRouter()
+
+router = APIRouter(dependencies=[Depends(verify_api_key)])
+JOB_TTL_SECONDS = 60 * 60 * 24  # 24 hours — adjust to whatever makes sense for your workflow
+def job_key(job_id: str) -> str:
+    return f"job:{job_id}"
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await open_pool()
@@ -73,7 +79,7 @@ async def validate_requirements(request: Request,service = Depends(get_traceabil
             "created_at": time.time()
         }
 
-        await request.app.state.redis.hset("job_store", job_id, json.dumps(job_data))
+        await request.app.state.redis.setex(job_key(job_id), JOB_TTL_SECONDS, json.dumps(job_data))
         return {"status": "success", 
                 "job_id": job_id, 
                 "rows": len(requirements_list)}
@@ -96,7 +102,8 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
         test_cases_list = await service.import_csv(test_cases_mapped, TestCase)
         await service.store_test_cases(test_cases_list, job_id)
         job["test_cases_ready"] = True
-        await request.app.state.redis.hset("job_store", job_id, json.dumps(job))
+        await request.app.state.redis.setex(job_key(job_id), JOB_TTL_SECONDS, json.dumps(job))
+
         
         return {"status": "success", 
                 "rows": len(test_cases_list)}
