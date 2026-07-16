@@ -1,6 +1,5 @@
 import torch
 from collections import defaultdict
-from fastapi import Depends
 from application.repo.db import DB_POOL
 from application.repo.tensor_codec import encode_tensor, decode_tensor
 

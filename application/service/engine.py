@@ -67,9 +67,9 @@ class SemanticEngine:
             emb = self.model.encode(t.summary, convert_to_tensor=True)
             test_case_id = await self.repo.create_test_case(t.summary,job_id,emb)
             if t.steps:
-                step_embeddings = await run_in_threadpool(self.model.encode, t.steps, convert_to_tensor=True)
+                step_embeddings = await run_in_threadpool(self.model.encode, t.summary, convert_to_tensor=True)
                 for step, step_emb in zip(t.steps, step_embeddings):
-                    self.repo.store_step(step, step_emb, test_case_id, job_id)
+                    await self.repo.store_step(step, step_emb, test_case_id, job_id)
 
 
     async def compute_similarity(self, requirements,job_id):

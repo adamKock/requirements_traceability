@@ -38,7 +38,7 @@ class TraceabilityService:
 
     
     async def map_test_cases(self,file_obj,):
-        df = pd.read_csv(file_obj)
+        df = await run_in_threadpool(pd.read_csv, file_obj)        
         df.dropna(how='all', axis=1, inplace=True)
         columns_list = df.columns.tolist()
         Test_Case_Mapping = await self.repo.get_test_mappings()

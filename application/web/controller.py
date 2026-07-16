@@ -14,9 +14,9 @@ from application.web.auth import verify_api_key
 
 
 
-
 router = APIRouter(dependencies=[Depends(verify_api_key)])
 JOB_TTL_SECONDS = 60 * 60 * 24  # 24 hours — adjust to whatever makes sense for your workflow
+
 def job_key(job_id: str) -> str:
     return f"job:{job_id}"
 
@@ -91,7 +91,7 @@ async def validate_requirements(request: Request,service = Depends(get_traceabil
 @router.post("/validate/testcases/{job_id}")
 async def validate_testcases(job_id:str, request: Request,testcases_file:UploadFile = File(...),service = Depends(get_traceability_service)):
     
-    raw_job = await request.app.state.redis.hget("job_store", job_id)
+    raw_job = await request.app.state.redis.get(job_key(job_id))
     if not raw_job:
         raise HTTPException(status_code=404, detail="ID not found")
     job = json.loads(raw_job)
@@ -109,6 +109,8 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
                 "rows": len(test_cases_list)}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+    
 
 #This endpoint takes the requirements in the job store creates embeddings then runs similaritys against them
 #vs embeddings in the DB for the test cases 
@@ -130,7 +132,7 @@ async def submit(job_id:str,request: Request, service = Depends(get_traceability
     try:
         req_objects = [Requirement(**r) for r in job["requirements"]]
         results = await service.run_traceability(req_objects, job_id)
-        await request.app.state.redis.hdel("job_store", job_id)
+        await request.app.state.redis.delete(job_key(job_id))
         return results
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
