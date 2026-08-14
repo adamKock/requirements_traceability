@@ -117,7 +117,7 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
 @router.post("/submit/{job_id}")
 async def submit(job_id:str,request: Request, service = Depends(get_traceability_service)):
     
-    raw_job = await request.app.state.redis.hget("job_store", job_id)
+    raw_job = await request.app.state.redis.get(job_key(job_id))
     if not raw_job:
         raise HTTPException(status_code=404, detail="ID not found")
     
