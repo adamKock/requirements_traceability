@@ -1,17 +1,22 @@
-# Use an existing Python image
-FROM python:latest
+FROM python:3.12-slim
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Copy all project files into /app
-COPY . .
+ENV HF_HOME=/app/.cache/huggingface
 
-# Install dependencies
+# Copy only requirements first, so this layer is cached unless deps change
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
-EXPOSE 8000
+# Pre-download models — cached unless requirements.txt changes
+RUN python3 -c "\
+from sentence_transformers import SentenceTransformer, CrossEncoder; \
+SentenceTransformer('all-mpnet-base-v2'); \
+CrossEncoder('cross-encoder/stsb-roberta-base')"
+ENV HF_HOME=/opt/hf_cache
 
-# Start the app
+# Copy the rest of your code LAST — changes here don't bust the model cache
+COPY . .
+
+EXPOSE 8000
 CMD ["python", "main.py"]
