@@ -13,7 +13,9 @@ class TraceabilityService:
         self.repo = repo
 
     async def map_requirements(self, file_obj):
-        
+
+
+       try:
         df = await run_in_threadpool(pd.read_csv, file_obj)
         df.dropna(how='all', axis=1, inplace=True)
         req_columns_list = df.columns.tolist()
@@ -35,29 +37,38 @@ class TraceabilityService:
         output.seek(0)
         return output
 
+       except Exception as e:
+        raise ValueError(f"Error mapping requirements: {str(e)}")           
+       
+
 
     
     async def map_test_cases(self,file_obj,):
-        df = await run_in_threadpool(pd.read_csv, file_obj)        
-        df.dropna(how='all', axis=1, inplace=True)
-        columns_list = df.columns.tolist()
-        Test_Case_Mapping = await self.repo.get_test_mappings()
 
-        reverse_map = {
-        variant: key
-            for key, variants in Test_Case_Mapping.items() 
-            for variant in variants}
+        try:
+            df = await run_in_threadpool(pd.read_csv, file_obj)        
+            df.dropna(how='all', axis=1, inplace=True)
+            columns_list = df.columns.tolist()
+            Test_Case_Mapping = await self.repo.get_test_mappings()
+
+            reverse_map = {
+            variant: key
+                for key, variants in Test_Case_Mapping.items() 
+                for variant in variants}
         
-        new_columns_list = [
-            reverse_map.get(col, col) 
-            for col in columns_list]
+            new_columns_list = [
+                reverse_map.get(col, col) 
+                for col in columns_list]
             
-        df.columns = new_columns_list 
-        output = StringIO()
-        df.to_csv(output, index=False)
-        output.seek(0)
+            df.columns = new_columns_list 
+            output = StringIO()
+            df.to_csv(output, index=False)
+            output.seek(0)
 
-        return output
+            return output
+        
+        except Exception as e:
+            raise ValueError(f"Error mapping test cases: {str(e)}")
 
         
     
@@ -130,5 +141,7 @@ class TraceabilityService:
             k.lower(): [item.lower() for item in v_list]
             for k, v_list in mapping.items()
         }
+    async def clear_test_cases(self, job_id):
+        await self.repo.delete_test_cases_for_job(job_id)
     
 

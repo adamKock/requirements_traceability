@@ -144,6 +144,15 @@ class TensorRepository:
                                 for tc_id, emb_blob in rows:
                                         step_data[tc_id].append(decode_tensor(emb_blob).cpu())
                                 return step_data # Dictionary: {test_case_id: [tensor1, tensor2, ...]}
+                        
+        async def delete_test_cases_for_job(self, job_id):
+                async with DB_POOL.connection() as conn:
+                        async with conn.cursor() as cursor:
+                # steps first — they FK reference test_cases
+                                await cursor.execute(
+                                "DELETE FROM test_steps WHERE job_id = %s", (job_id,))
+                                await cursor.execute(
+                                "DELETE FROM test_cases WHERE job_id = %s", (job_id,))
 
                 
 

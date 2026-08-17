@@ -130,7 +130,7 @@ class SemanticEngine:
     
     async def store_test_cases(self, test_cases, job_id):
         for t in test_cases:
-            emb = self.model.encode(t.summary, convert_to_tensor=True)
+            emb = await run_in_threadpool(self.model.encode(t.summary, convert_to_tensor=True))
             test_case_id = await self.repo.create_test_case(t.summary,job_id,emb)
             if t.steps:
                 step_embeddings = await run_in_threadpool(self.model.encode, t.steps, convert_to_tensor=True)
@@ -148,6 +148,9 @@ class SemanticEngine:
         
         #Test Summary 
         tc_ids, tc_embs = await self.repo.get_all_test_case_embeddings(job_id)
+        if not tc_ids:
+            return "No test cases found for job_id: " + str(job_id)
+        
         tc_embs = tc_embs.to(self.device)
 
         summary_sim_matrix = util.cos_sim(req_embs,tc_embs)

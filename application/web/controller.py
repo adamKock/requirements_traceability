@@ -100,6 +100,7 @@ async def validate_testcases(job_id:str, request: Request,testcases_file:UploadF
     try:
         test_cases_mapped = await service.map_test_cases(testcases_file.file )
         test_cases_list = await service.import_csv(test_cases_mapped, TestCase)
+        await service.clear_test_cases(job_id)  
         await service.store_test_cases(test_cases_list, job_id)
         job["test_cases_ready"] = True
         await request.app.state.redis.setex(job_key(job_id), JOB_TTL_SECONDS, json.dumps(job))
