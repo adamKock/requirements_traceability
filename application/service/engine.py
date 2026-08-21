@@ -63,79 +63,92 @@ class SemanticEngine:
      
         
         testcase_map = await self.repo.get_test_cases_by_job_id(job_id)
-        results_list =[]
+        per_row_top = {}
+        per_row_remaining = {}
+        rerank_jobs = []  # (row_index, col, bi_score, pair)
+        RERANK_TOP_N = 5
         
-        RERANK_TOP_N =5
+        
+        
 
         for row_index in range(len(requirements)):
-            matches = []
+            if row_index not in grouped:
+                continue
 
+
+            
+            sorted_matches = sorted(grouped[row_index], key=lambda x: x[1], reverse=True)      
+            top_candidates = sorted_matches[:RERANK_TOP_N]
+            remaining = sorted_matches[RERANK_TOP_N:]
+            per_row_top[row_index] = top_candidates
+            per_row_remaining[row_index] = remaining   
+            req_text = requirements[row_index].description
+
+            for col, bi_score in top_candidates:
+                pair = (req_text, testcase_map.get(ids[col], ""))
+                rerank_jobs.append((row_index, col, bi_score, pair))
+        rerank_scores=[]
+        if rerank_jobs:
+            all_pairs = [job[3] for job in rerank_jobs]
+            rerank_scores = await run_in_threadpool(self._reranker.predict, all_pairs)
+        ce_lookup = {
+        (row_index, col): ce_score
+        for (row_index, col, _, _), ce_score in zip(rerank_jobs, rerank_scores)}
+                
+
+        results_list = []
+        for row_index in range(len(requirements)):
+            matches=[]
             if row_index in grouped:
-                sorted_matches = sorted(grouped[row_index], key=lambda x: x[1], reverse=True)      
-                top_candidates = sorted_matches[:RERANK_TOP_N]
-                remaining = sorted_matches[RERANK_TOP_N:]   
-                req_text = requirements[row_index].description   
+                for col, bi_score in per_row_top.get(row_index, []):
+                    tc_id = ids[col]
+                    ce_score = ce_lookup.get((row_index, col))
+                    matches.append({
+                    "TestCaseID": tc_id,
+                    "TestCase": testcase_map.get(tc_id, "Unknown"),
+                    "Similarity": self.get_confidence(bi_score, ce_score),
+                    "NeedsReview": bi_score < CONFIDENT_THRESHOLD,
+                    "MatchedVia": "step" if step_scores_cpu[row_index, col] > summary_scores_cpu[row_index, col] else "summary",
+                })
+                matches.sort(key=lambda m: m["Similarity"], reverse=True)
 
-                if top_candidates:
-                    pairs = [
-                        (req_text, testcase_map.get(ids[col], ""))
-                        for col, _ in top_candidates
-                    ]
-                    rerank_scores = await run_in_threadpool(self._reranker.predict, pairs)
+                for col, bi_score in per_row_remaining.get(row_index, []):
+                    tc_id = ids[col]
+                    matches.append({
+                    "TestCaseID": tc_id,
+                    "TestCase": testcase_map.get(tc_id, "Unknown"),
+                    "Similarity": self.get_confidence(bi_score),
+                    "NeedsReview": bi_score < CONFIDENT_THRESHOLD,
+                    "MatchedVia": "step" if step_scores_cpu[row_index, col] > summary_scores_cpu[row_index, col] else "summary",
+                })
+            results_list.append({
+            "Requirement": requirements[row_index].description,
+            "Match Count": len(matches),
+            "NeedsReviewCount": sum(1 for m in matches if m["NeedsReview"]),
+            "Matches": matches,
+        })
 
-                    reranked = []
-                    for (col, bi_score), ce_score in zip(top_candidates, rerank_scores):
-                        tc_id = ids[col]
-                         # =========== NEW ===========
-                        matched_via = "step" if step_scores_cpu[row_index, col] > summary_scores_cpu[row_index, col] else "summary"
-                        # =========== END NEW ===========
-                       
-                        reranked.append({
-                            "TestCaseID": tc_id,
-                            "TestCase": testcase_map.get(tc_id, "Unknown"),
-                            "Similarity": self.get_confidence(bi_score, ce_score),
-                            "NeedsReview": bi_score < CONFIDENT_THRESHOLD,   # NEW
-                            "MatchedVia": matched_via                        # NEW
-                                })
-                    reranked.sort(key=lambda m: m["Similarity"], reverse=True)
-                    matches.extend(reranked)
 
-                    for col, bi_score in remaining:
-                        tc_id = ids[col]
-                        # =========== NEW ===========
-                        matched_via = "step" if step_scores_cpu[row_index, col] > summary_scores_cpu[row_index, col] else "summary"
-                        # =========== END NEW ===========
-                        matches.append({
-                        "TestCaseID": tc_id,
-                        "TestCase": testcase_map.get(tc_id, "Unknown"),
-                        "Similarity": self.get_confidence(bi_score),
-                        "NeedsReview": bi_score < CONFIDENT_THRESHOLD,   # NEW
-                        "MatchedVia": matched_via 
-                            })
-
-            result={
-                "Requirement": requirements[row_index].description,
-                "Match Count": len(matches),
-                "NeedsReviewCount": sum(1 for m in matches if m["NeedsReview"]),
-                "Matches": matches
-
-            }
-            results_list.append(result)
-
+      
         return results_list
 
 
-               
-   
-    
     async def store_test_cases(self, test_cases, job_id):
-        for t in test_cases:
-            emb = await run_in_threadpool(self.model.encode(t.summary, convert_to_tensor=True))
-            test_case_id = await self.repo.create_test_case(t.summary,job_id,emb)
+        if not test_cases:
+            return
+
+        summaries = [t.summary for t in test_cases]
+        summary_embeddings = await run_in_threadpool(self.model.encode, summaries, convert_to_tensor=True)
+
+        batch_data = []
+        for t, summary_emb in zip(test_cases, summary_embeddings):
+            step_pairs = []
             if t.steps:
-                step_embeddings = await run_in_threadpool(self.model.encode, t.steps, convert_to_tensor=True)
-                for step, step_emb in zip(t.steps, step_embeddings):
-                    await self.repo.store_step(step, step_emb, test_case_id, job_id)
+                step_embs = await run_in_threadpool(self.model.encode, t.steps, convert_to_tensor=True)
+                step_pairs = list(zip(t.steps, step_embs))
+            batch_data.append({"summary": t.summary, "embedding": summary_emb, "steps": step_pairs})
+
+        await self.repo.store_test_cases_batch(batch_data, job_id)
 
 
     async def compute_similarity(self, requirements,job_id):
@@ -149,7 +162,13 @@ class SemanticEngine:
         #Test Summary 
         tc_ids, tc_embs = await self.repo.get_all_test_case_embeddings(job_id)
         if not tc_ids:
-            return "No test cases found for job_id: " + str(job_id)
+            empty = torch.zeros((len(requirements), 0), device=self.device)
+            return {
+            "summary_matrix": empty,
+            "step_matrix": empty,
+            "bm25_matrix": empty,
+            "test_case_ids": [],
+            "requirements": requirements,}
         
         tc_embs = tc_embs.to(self.device)
 

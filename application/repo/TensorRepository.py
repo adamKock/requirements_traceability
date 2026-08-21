@@ -40,6 +40,10 @@ class TensorRepository:
                                         cannonical_field TEXT NOT NULL,
                                         varient TEXT NOT NULL)
                                         """)
+                                await cursor.execute("""CREATE INDEX IF NOT EXISTS idx_test_cases_job_id
+                                                     ON test_cases(job_id)""")
+                                await cursor.execute("""CREATE INDEX IF NOT EXISTS idx_test_steps_job_id
+                                                     ON test_steps(job_id)""")
 
         
         async def create_test_case(self,summary,job_id,embedding):
@@ -153,6 +157,27 @@ class TensorRepository:
                                 "DELETE FROM test_steps WHERE job_id = %s", (job_id,))
                                 await cursor.execute(
                                 "DELETE FROM test_cases WHERE job_id = %s", (job_id,))
+
+        # TensorRepository.py
+        async def store_test_cases_batch(self, test_cases_data, job_id):
+   
+                if not test_cases_data:
+                        return []
+
+                test_case_ids = []
+                async with DB_POOL.connection() as conn:
+                        async with conn.cursor() as cursor:
+                                for tc in test_cases_data:
+                                        await cursor.execute("INSERT INTO test_cases (summary,job_id,embeddings) VALUES (%s,%s,%s) RETURNING id",(tc["summary"], job_id, encode_tensor(tc["embedding"])),)
+                                        test_case_id = (await cursor.fetchone())[0]
+                                        test_case_ids.append(test_case_id)
+
+                                        if tc["steps"]:
+                                                step_rows = [(test_case_id, step_text, job_id, encode_tensor(step_emb))
+                                                        for step_text, step_emb in tc["steps"]]
+                                                await cursor.executemany("INSERT INTO test_steps (test_case_id,step_text,job_id,embeddings) VALUES (%s,%s,%s,%s)",step_rows,)
+
+                return test_case_ids
 
                 
 
