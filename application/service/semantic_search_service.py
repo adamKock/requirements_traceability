@@ -2,7 +2,6 @@ from typing import List,Type
 import pandas as pd 
 from pydantic import BaseModel
 from application.schemas.schema import Requirement
-from io import StringIO
 from fastapi.concurrency import run_in_threadpool
 
 
@@ -32,10 +31,8 @@ class TraceabilityService:
 
         ]
         df.columns = new_req_columns
-        output = StringIO()
-        df.to_csv(output, index=False)
-        output.seek(0)
-        return output
+       
+        return df
 
        except Exception as e:
         raise ValueError(f"Error mapping requirements: {str(e)}")           
@@ -61,46 +58,48 @@ class TraceabilityService:
                 for col in columns_list]
             
             df.columns = new_columns_list 
-            output = StringIO()
-            df.to_csv(output, index=False)
-            output.seek(0)
-
-            return output
+          
+            return df
         
         except Exception as e:
             raise ValueError(f"Error mapping test cases: {str(e)}")
 
         
     
-    async def import_csv(self, csv, model_class:Type[BaseModel]) -> List[BaseModel]:
-        df = await run_in_threadpool(pd.read_csv, csv)
-        df.dropna(how='all', axis=1, inplace=True)
+    async def import_csv(self, df:pd.DataFrame, model_class:Type[BaseModel]) -> List[BaseModel]:
+        try:
+            df = df.copy()
 
-        #Clean Columns 
-        df.columns = df.columns.str.strip().str.lower()
-        print(df.columns)
+            df.dropna(how='all', axis=1, inplace=True)
 
-        if "id" in df.columns and "stepaction" in df.columns:
-            if "stepnumber" in df.columns:
-                df = df.sort_values(["id", "stepnumber"])
-            df = (
-                df.groupby(["id", "summary"])["stepaction"]
-                .apply(list)
-                .reset_index(name="steps"))
+            #Clean Columns 
+            df.columns = df.columns.str.strip().str.lower()
+            print(df.columns)
 
-        csv_columns = set(df.columns)
-        expected_columns = set(model_class.model_fields.keys())
+            if "id" in df.columns and "stepaction" in df.columns:
+                if "stepnumber" in df.columns:
+                    df = df.sort_values(["id", "stepnumber"])
+                df = (
+                    df.groupby(["id", "summary"])["stepaction"]
+                    .apply(list)
+                    .reset_index(name="steps"))
 
-        #Check Schema
-        missing = expected_columns - csv_columns
-        too_many = csv_columns - expected_columns
+            csv_columns = set(df.columns)
+            expected_columns = set(model_class.model_fields.keys())
 
-        if missing:
-            print("CSV columns do not match schema")
-            raise ValueError(f"CSV columns do not match schema. Missing: {missing}")
-        if too_many:
-            df.drop(columns=list(too_many), inplace=True) 
-        records = df.to_dict(orient="records")
+            #Check Schema
+            missing = expected_columns - csv_columns
+            too_many = csv_columns - expected_columns
+
+            if missing:
+                print("CSV columns do not match schema")
+                raise ValueError(f"CSV columns do not match schema. Missing: {missing}")
+            if too_many:
+                df.drop(columns=list(too_many), inplace=True) 
+            records = df.to_dict(orient="records")
+
+        except:
+            raise ValueError("Error importing CSV")
         
         return [model_class(**row) for row in records] 
         
